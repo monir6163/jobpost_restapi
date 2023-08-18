@@ -1,29 +1,27 @@
 const express = require("express");
+const expressLayouts = require("express-ejs-layouts");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const path = require("path").join(__dirname, "public");
 
 const app = express();
+app.use(expressLayouts);
+app.set("view engine", "ejs");
+app.use(express.static(path));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cookieParser());
+// ************ every page ************
+const { checkUser } = require("./middleware/checkAuth");
+app.use(checkUser);
 
-// ************ Post ************
+// ************ login ************
+const loginRoutes = require("./routes/adminRoute/authRoute");
+app.use(loginRoutes);
 
-const postsRoutes = require("./routes/post");
-app.use("/post", postsRoutes);
+// ************ Home ************
+const homeRoutes = require("./routes/adminRoute/home");
 
-// ************ endPost ************
-
-// ************ Category ************
-
-// ************ endCategory ************
-
-// ************ User ************
-
-const userRoutes = require("./routes/user");
-app.use("/user", userRoutes);
-
-// ************ endUser ************
-
-// ************ Comment ************
-
-// ************ endComment ************
+app.use(homeRoutes);
 
 module.exports = app;

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('layout/header.ejs') %>
+    <body class="sidebar-mini layout-fixed">
+        <div class="wrapper">
+            <!-- Preloader -->
+            <%- include('layout/preLoader.ejs') %>
+            <!-- Navbar -->
+            <%- include('layout/navigation.ejs') %>
+            <!-- /.navbar -->
+
+            <!-- Main Sidebar Container -->
+            <%- include('layout/sidebar.ejs') %>
+            <!-- Content Wrapper. Contains page content -->
+            <!-- dynamic content -->
+            <%- body %>
+            <!-- /.content-wrapper -->
+
+            <!-- Control Sidebar -->
+            <%- include('layout/control-sidebar.ejs') %>
+            <!-- /.control-sidebar -->
+
+            <!-- Main Footer -->
+            <%- include('layout/footer.ejs') %>
+        </div>
+        <%- include('layout/js.ejs') %>
+    </body>
+</html>
