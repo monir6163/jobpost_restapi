@@ -18,8 +18,6 @@ module.exports.loginUser = (req, res) => {
         password: req.body.password,
     };
 
-    console.log(req.body);
-
     const schema = {
         email: { type: "email", optional: false },
         password: { type: "string", optional: false },
@@ -44,26 +42,30 @@ module.exports.loginUser = (req, res) => {
                     result.password
                 );
                 if (isPasswordValid) {
-                    const token = jwt.sign(
-                        {
-                            userId: result.id,
-                        },
-                        process.env.JWT_KEY,
-                        {
-                            expiresIn: "24h",
-                        }
+                    // Issue access token with a short expiration
+                    const accessToken = jwt.sign(
+                        { userId: result.id },
+                        process.env.JWT_SECRET,
+                        { expiresIn: "15m" }
                     );
 
-                    res.cookie("jwt", token, {
-                        maxAge: 24 * 60 * 60 * 1000,
+                    // Issue refresh token with a longer expiration
+                    const refreshToken = jwt.sign(
+                        { userId: result.id },
+                        process.env.JWT_SECRET,
+                        { expiresIn: "7d" }
+                    );
+                    res.cookie("accessToken", accessToken, {
                         httpOnly: true,
                     });
-
-                    return res.status(200).json({
+                    res.cookie("refreshToken", refreshToken, {
+                        httpOnly: true,
+                    });
+                    res.json({
+                        accessToken,
+                        user: result,
                         status: "success",
                         message: "User logged in successfully",
-                        token: token,
-                        user: result,
                     });
                 } else {
                     return res.status(404).json({
@@ -79,6 +81,7 @@ module.exports.loginUser = (req, res) => {
             }
         })
         .catch((error) => {
+            console.log(error);
             return res.status(500).json({
                 status: "error",
                 message: "Something went wrong",
@@ -89,6 +92,9 @@ module.exports.loginUser = (req, res) => {
 
 //logout the user and clear the cookie
 module.exports.logout = (req, res) => {
-    res.cookie("jwt", "", { maxAge: 1 });
-    return res.redirect("/");
+    res.clearCookie("accessToken");
+    return res.status(200).json({
+        status: "success",
+        message: "User logged out successfully",
+    });
 };

@@ -4,9 +4,8 @@
         <div class="card-header text-center">
             <a href="" class="h1"><b>Job</b>Hunter</a>
         </div>
-        <div class="card-body">
-            <p class="login-box-msg text-red"><%= locals.message %></p>
 
+        <div class="card-body">
             <form action="/user/login" method="POST" autocomplete="off">
                 <div class="input-group mb-3">
                     <input
@@ -49,16 +48,14 @@
     </div>
     <!-- /.card -->
 </div>
-
-<script>
+<!-- <script>
     const form = document.querySelector("form");
+    const errorText = document.querySelector(".login-box-msg");
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = form.email.value;
         const password = form.password.value;
-
-        console.log(email, password);
 
         try {
             const res = await fetch("/loginUser", {
@@ -70,12 +67,130 @@
             const data = await res.json();
 
             if (data.status === "success") {
-                location.assign("/dashboard");
+                Toastify({
+                    text: data.message,
+                    duration: 5000,
+                    style: {
+                        background:
+                            "linear-gradient(to right, #00b09b, #96c93d)",
+                    },
+                }).showToast();
+                setTimeout(() => {
+                    location.assign("/dashboard");
+                }, 1000);
             } else {
-                alert(data.message);
+                Toastify({
+                    text: data.message,
+                    backgroundColor:
+                        "linear-gradient(to right, #ff416c, #ff4b2b)",
+                    duration: 5000,
+                }).showToast();
             }
         } catch (error) {
             console.log(error);
+        }
+    });
+</script> -->
+
+<script>
+    const form = document.querySelector("form");
+    const errorText = document.querySelector(".login-box-msg");
+
+    async function login(email, password) {
+        try {
+            const res = await fetch("/loginUser", {
+                method: "POST",
+                body: JSON.stringify({ email, password }),
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function refreshAccessToken() {
+        try {
+            const refreshResponse = await fetch("/refreshToken", {
+                method: "POST",
+                credentials: "include", // Needed to include the cookie in the request to the API server
+            });
+
+            if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json();
+                return refreshData.accessToken;
+            } else {
+                throw new Error("Refresh token request failed");
+            }
+        } catch (error) {
+            console.error("Error refreshing access token:", error);
+            // Handle the error, possibly by logging the user out
+        }
+    }
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = form.email.value;
+        const password = form.password.value;
+
+        const loginData = await login(email, password);
+
+        if (loginData.status === "success") {
+            Toastify({
+                text: loginData.message,
+                duration: 5000,
+                style: {
+                    background: "linear-gradient(to right, #00b09b, #96c93d)",
+                },
+            }).showToast();
+            setTimeout(() => {
+                location.assign("/dashboard");
+            }, 1000);
+        } else {
+            if (loginData.message === "Access token expired") {
+                // Try refreshing the access token
+                const newAccessToken = await refreshAccessToken();
+                if (newAccessToken) {
+                    // Update the access token and retry the login
+                    const retryLoginData = await login(email, password);
+                    if (retryLoginData.status === "success") {
+                        Toastify({
+                            text: retryLoginData.message,
+                            duration: 5000,
+                            style: {
+                                background:
+                                    "linear-gradient(to right, #00b09b, #96c93d)",
+                            },
+                        }).showToast();
+                        setTimeout(() => {
+                            location.assign("/dashboard");
+                        }, 1000);
+                    } else {
+                        Toastify({
+                            text: retryLoginData.message,
+                            backgroundColor:
+                                "linear-gradient(to right, #ff416c, #ff4b2b)",
+                            duration: 5000,
+                        }).showToast();
+                    }
+                } else {
+                    Toastify({
+                        text: "Login failed. Please try again.",
+                        backgroundColor:
+                            "linear-gradient(to right, #ff416c, #ff4b2b)",
+                        duration: 5000,
+                    }).showToast();
+                }
+            } else {
+                Toastify({
+                    text: loginData.message,
+                    backgroundColor:
+                        "linear-gradient(to right, #ff416c, #ff4b2b)",
+                    duration: 5000,
+                }).showToast();
+            }
         }
     });
 </script>

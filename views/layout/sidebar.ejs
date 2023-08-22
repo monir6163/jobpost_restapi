@@ -22,7 +22,9 @@
                 />
             </div>
             <div class="info">
-                <a href="#" class="d-block"> <%= user.name %> </a>
+                <a href="#" class="d-block">
+                    <% if (user) { %> <%= user.name %> <% } %>
+                </a>
             </div>
         </div>
 
@@ -45,30 +47,17 @@
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li
+                    class="nav-item <%= title === 'Category' || title === 'Add Category' ? 'menu-is-opening menu-open' : '' %>"
+                >
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-chart-pie"></i>
                         <p>
-                            Job Posts
+                            Job Categories
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a
-                                href="pages/charts/chartjs.html"
-                                class="nav-link"
-                            >
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>All Posts</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="pages/charts/flot.html" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Add Post</p>
-                            </a>
-                        </li>
                         <li class="nav-item">
                             <a
                                 href="/category"
@@ -79,15 +68,49 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="pages/charts/uplot.html" class="nav-link">
+                            <a
+                                href="/addCategory"
+                                class="nav-link <%= title === 'Add Category' ? 'active' : '' %>"
+                            >
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Add Category</p>
                             </a>
                         </li>
                     </ul>
                 </li>
+                <li
+                    class="nav-item <%= title === 'Subcategory' || title === 'Add Subcategory' ? 'menu-is-opening menu-open' : '' %>"
+                >
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-chart-pie"></i>
+                        <p>
+                            Job SubCategories
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a
+                                href="/subCategory"
+                                class="nav-link <%= title === 'Subcategory' ? 'active' : '' %>"
+                            >
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>All SubCategory</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                href="/addSubCategory"
+                                class="nav-link <%= title === 'Add Subcategory' ? 'active' : '' %>"
+                            >
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Add SubCategory</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <li class="nav-item">
-                    <a href="/logout" class="nav-link">
+                    <a href="/logout" class="nav-link" id="logoutUser">
                         <i class="nav-icon far fa-circle text-info"></i>
                         <p>Logout</p>
                     </a>
@@ -98,3 +121,33 @@
     </div>
     <!-- /.sidebar -->
 </aside>
+
+<script>
+    //logout user
+    const logoutUser = document.querySelector("#logoutUser");
+    logoutUser.addEventListener("click", async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch("/logout", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await res.json();
+            if (data.status === "success") {
+                Toastify({
+                    text: data.message,
+                    duration: 5000,
+                    style: {
+                        background:
+                            "linear-gradient(to right, #00b09b, #96c93d)",
+                    },
+                }).showToast();
+                setTimeout(() => {
+                    location.assign("/");
+                }, 1000);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    });
+</script>

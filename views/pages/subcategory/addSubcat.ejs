@@ -1,0 +1,103 @@
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1><%- title %></h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active"><%- title %></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content col-6 mx-auto">
+        <div class="card card-primary">
+            <div class="card-header">
+                <h3 class="card-title"><%- title %></h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            <form>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Select Parent Category</label>
+                        <select class="form-control" id="catId">
+                            <option value="">Select Parent Category</option>
+                            <% categories.forEach((category, index) => { %>
+                            <option value="<%= category.id %>">
+                                <%= category.name %>
+                            </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subcat"
+                            >SubCategory Name
+                            <span class="text-red">*</span></label
+                        >
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="subcat"
+                            placeholder="Enter SubCategories Name"
+                        />
+                    </div>
+                </div>
+                <!-- /.card-body -->
+
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary col-12">
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+<script src="/plugins/jquery/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("form").submit(function (e) {
+            e.preventDefault();
+            var catId = $("#catId").val();
+            var subcat = $("#subcat").val();
+            $.ajax({
+                type: "POST",
+                url: "/createSubCategory",
+                data: {
+                    catId: catId,
+                    subcat: subcat,
+                },
+                success: function (response) {
+                    if (response.status == "success") {
+                        $("#catId").val("");
+                        $("#subcat").val("");
+                        Toastify({
+                            text: response.message,
+                            backgroundColor:
+                                "linear-gradient(to right, #00b09b, #96c93d)",
+                            duration: 5000,
+                        }).showToast();
+                    }
+                },
+                //error function added
+                error: function (error) {
+                    Toastify({
+                        text: error.responseJSON.errors.message,
+                        backgroundColor:
+                            "linear-gradient(to right, #ff416c, #ff4b2b)",
+                        duration: 5000,
+                    }).showToast();
+                },
+            });
+        });
+    });
+</script>

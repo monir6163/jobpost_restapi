@@ -1,3 +1,6 @@
+const models = require("../models");
+const bcrypt = require("bcrypt");
+const validator = require("fastest-validator");
 function signup(req, res) {
     const user = {
         name: req.body.name,

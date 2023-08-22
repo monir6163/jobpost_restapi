@@ -7,9 +7,5 @@ router.get(
     checkAuthMiddleware.checkAuth,
     homeController.indexView
 );
-router.get(
-    "/category",
-    checkAuthMiddleware.checkAuth,
-    homeController.CategoryView
-);
+
 module.exports = router;

@@ -29,40 +29,44 @@
                     <thead>
                         <tr>
                             <th>SN</th>
-                            <th>Name</th>
+                            <th>SubCatName</th>
+                            <th>CatName</th>
                             <th>CreatedAt</th>
                             <th>UpdatedAt</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% categories.forEach((category, index) => { %>
+                        <% subcategories.forEach((subcategory, index) => { %>
                         <tr>
                             <td><%= index + 1 %></td>
-                            <td><%= category.name %></td>
+                            <td><%= subcategory.name %></td>
+                            <td><%= subcategory.category.name %></td>
                             <td>
                                 <% if(formatDistance && subDays) { %> <%=
                                 formatDistance(subDays(new Date(), 0), new
-                                Date(category.createdAt), { addSuffix: true })
-                                %> <% } %>
+                                Date(subcategory.createdAt), { addSuffix: true
+                                }) %> <% } %>
                             </td>
                             <td>
                                 <% if(formatDistance && subDays) { %> <%=
                                 formatDistance(subDays(new Date(), 0), new
-                                Date(category.updatedAt), { addSuffix: true })
-                                %> <% } %>
+                                Date(subcategory.updatedAt), { addSuffix: true
+                                }) %> <% } %>
                             </td>
                             <td>
                                 <a
-                                    href="/editCategory/<%= category.id %>"
+                                    href="/editSubCategory/<%= subcategory.id %>"
                                     class="btn btn-primary"
-                                    ><i class="fas fa-edit"></i
-                                ></a>
+                                >
+                                    <i class="fas fa-edit"></i>
+                                </a>
                                 <a
-                                    href="/deleteCategory/<%= category.id %>"
+                                    href="/deleteSubCategory/<%= subcategory.id %>"
                                     class="btn btn-danger"
-                                    ><i class="fas fa-trash-alt"></i
-                                ></a>
+                                >
+                                    <i class="fas fa-trash"></i>
+                                </a>
                             </td>
                         </tr>
                         <% }) %>

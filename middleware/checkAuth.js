@@ -2,52 +2,106 @@ const jwt = require("jsonwebtoken");
 const models = require("../models");
 
 function checkAuth(req, res, next) {
-    try {
-        // const token = req.headers.authorization.split(" ")[1];
-        // const token = req.cookies.jwt;
-        // const decoded = jwt.verify(token, process.env.JWT_KEY);
-        // req.userData = decoded;
-        const token = req.cookies.jwt;
-        //check if token exists in the cookie and if it does not exist, then the user is not authenticated
-        if (token) {
-            //verify the token
-            jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
-                if (err) {
-                    console.log(err);
-                    return res.redirect("/");
-                } else {
-                    // console.log(decoded);
-                    next();
-                }
-            });
-        } else {
-            res.redirect("/");
-        }
-        next();
-    } catch (error) {
-        console.log(error);
+    const accessToken = req.cookies.accessToken;
+
+    if (!accessToken) {
         return res.redirect("/");
     }
+
+    jwt.verify(accessToken, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            if (err.name === "TokenExpiredError") {
+                console.log("Access token expired");
+                // Handle expired access token, e.g., by redirecting to login
+                return res.redirect("/");
+            } else {
+                console.log("Access token invalid");
+                // Handle invalid access token, e.g., by redirecting to login
+                return res.redirect("/");
+            }
+        }
+
+        req.userId = decoded.userId;
+        next();
+    });
 }
 
 function checkUser(req, res, next) {
     try {
-        const token = req.cookies.jwt;
-        if (token) {
-            //verify the token
-            jwt.verify(token, process.env.JWT_KEY, async (err, decoded) => {
-                if (err) {
-                    console.log(err);
-                    res.locals.user = null;
-                    next();
-                } else {
-                    // console.log(decoded);
-                    let user = await models.User.findByPk(decoded.userId);
-                    // console.log(user.name);
-                    res.locals.user = user;
-                    next();
+        const accessToken = req.cookies.accessToken;
+
+        if (accessToken) {
+            jwt.verify(
+                accessToken,
+                process.env.JWT_SECRET,
+                async (err, decoded) => {
+                    if (err) {
+                        if (err.name === "TokenExpiredError") {
+                            console.log("Access token expired");
+                            // Handle expired access token, set res.locals.user to null
+
+                            const refreshToken = req.cookies.refreshToken;
+
+                            if (!refreshToken) {
+                                res.locals.user = null;
+                                return next();
+                            }
+
+                            jwt.verify(
+                                refreshToken,
+                                process.env.JWT_SECRET,
+                                (err, decodedRefresh) => {
+                                    if (err) {
+                                        res.locals.user = null;
+                                        res.clearCookie("accessToken");
+                                        return next();
+                                    }
+
+                                    // Issue a new access token
+                                    const newAccessToken = jwt.sign(
+                                        { userId: decodedRefresh.userId },
+                                        process.env.JWT_SECRET,
+                                        {
+                                            expiresIn: "15m",
+                                        }
+                                    );
+
+                                    res.cookie("accessToken", newAccessToken, {
+                                        httpOnly: true,
+                                    });
+
+                                    // Fetch the user and set it to res.locals.user
+                                    models.User.findByPk(decodedRefresh.userId)
+                                        .then((user) => {
+                                            res.locals.user = user;
+                                            next();
+                                        })
+                                        .catch((error) => {
+                                            console.log(error);
+                                            res.locals.user = null;
+                                            next();
+                                        });
+                                }
+                            );
+                        } else {
+                            console.log("Access token invalid");
+                            // Handle invalid access token, set res.locals.user to null
+                            res.locals.user = null;
+                            next();
+                        }
+                    } else {
+                        if (decoded && decoded.userId) {
+                            let user = await models.User.findByPk(
+                                decoded.userId
+                            );
+                            res.locals.user = user;
+                        } else {
+                            res.locals.user = null;
+                        }
+                        next();
+                    }
                 }
-            });
+            );
         } else {
             res.locals.user = null;
             next();
@@ -60,7 +114,7 @@ function checkUser(req, res, next) {
 }
 
 function loggedInUserRedirect(req, res, next) {
-    const token = req.cookies.jwt;
+    const token = req.cookies.accessToken;
 
     if (token) {
         // User is already logged in, redirect them to another page
