@@ -15,6 +15,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 dotenv.config();
 app.use(cookieParser());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -69,8 +70,7 @@ app.use(homeRoutes);
 const categoryRoutes = require("./routes/adminRoute/category");
 app.use(categoryRoutes);
 
-// ************ SubCategory ************
-const subCategoryRoutes = require("./routes/adminRoute/subcategory");
-app.use(subCategoryRoutes);
-
+// ************ Post ************
+const postRoutes = require("./routes/adminRoute/post");
+app.use(postRoutes);
 module.exports = app;

@@ -48,13 +48,33 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 // 1 to many relationship between category and subcategory
-db.Category.hasMany(db.Subcategory, {
+// db.Category.hasMany(db.Subcategory, {
+//     foreignKey: "categoryId",
+//     as: "subcategories",
+// });
+// db.Subcategory.belongsTo(db.Category, {
+//     foreignKey: "categoryId",
+//     as: "category",
+// });
+
+// 1 to many relationship between category and post
+db.Category.hasMany(db.Post, {
     foreignKey: "categoryId",
-    as: "subcategories",
+    as: "posts",
 });
-db.Subcategory.belongsTo(db.Category, {
+db.Post.belongsTo(db.Category, {
     foreignKey: "categoryId",
     as: "category",
+});
+
+// 1 to many relationship between user and post
+db.User.hasMany(db.Post, {
+    foreignKey: "userId",
+    as: "posts",
+});
+db.Post.belongsTo(db.User, {
+    foreignKey: "userId",
+    as: "user",
 });
 //re-sync database
 db.sequelize.sync({ alter: true }).then(() => {

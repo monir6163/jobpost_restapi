@@ -22,48 +22,64 @@
         <!-- Default box -->
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Title</h3>
+                <h3 class="card-title">
+                    <a href="/addpost" class="btn btn-primary float-right">
+                        <i class="fas fa-plus"></i> Add Post
+                    </a>
+                </h3>
             </div>
-            <div class="card-body">
+            <div class="card-body" id="card_body">
                 <table id="example1" class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th>SN</th>
-                            <th>SubCatName</th>
+                            <th>Title</th>
                             <th>CatName</th>
+                            <th>Image</th>
+                            <th>user</th>
                             <th>CreatedAt</th>
                             <th>UpdatedAt</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% subcategories.forEach((subcategory, index) => { %>
+                        <% posts.forEach(function(post, index) { %>
                         <tr>
-                            <td><%= index + 1 %></td>
-                            <td><%= subcategory.name %></td>
-                            <td><%= subcategory.category.name %></td>
+                            <td><%- index + 1 %></td>
+                            <td><%- post.title %></td>
+                            <td><%- post.category.name %></td>
+                            <td class="d-flex justify-content-around">
+                                <% if (post.imageUrl) { %> <% const imageUrls =
+                                post.imageUrl.split(","); %> <%
+                                imageUrls.forEach(function(imageUrl) { %>
+                                <img
+                                    src="http://localhost:3000/<%- imageUrl %>"
+                                    alt="Image"
+                                    width="50"
+                                />
+                                <% }); %> <% } else { %> No Images <% } %>
+                            </td>
+                            <td><%- post.user.name %></td>
                             <td>
-                                <% if(formatDistance && subDays) { %> <%=
-                                formatDistance(subDays(new Date(), 0), new
-                                Date(subcategory.createdAt), { addSuffix: true
-                                }) %> <% } %>
+                                <!-- date fns formatdistance, subdays -->
+                                <%- formatDistance(post.createdAt, new Date(), {
+                                addSuffix: true }) %>
                             </td>
                             <td>
-                                <% if(formatDistance && subDays) { %> <%=
-                                formatDistance(subDays(new Date(), 0), new
-                                Date(subcategory.updatedAt), { addSuffix: true
-                                }) %> <% } %>
+                                <!-- date fns formatdistance, subdays -->
+                                <%- formatDistance(post.updatedAt, new Date(), {
+                                addSuffix: true }) %>
                             </td>
                             <td>
                                 <a
-                                    href="/editSubCategory/<%= subcategory.id %>"
-                                    class="btn btn-primary"
+                                    href="/post/edit/<%- post.id %>"
+                                    class="btn btn-primary btn-sm"
                                 >
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <a
-                                    href="/deleteSubCategory/<%= subcategory.id %>"
-                                    class="btn btn-danger"
+                                    href="/post/delete/<%- post.id %>"
+                                    class="btn btn-danger btn-sm"
                                 >
                                     <i class="fas fa-trash"></i>
                                 </a>

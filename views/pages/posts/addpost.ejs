@@ -1,0 +1,148 @@
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1><%= title %></h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item">
+                            <a href="/dashboard">Home</a>
+                        </li>
+                        <li class="breadcrumb-item active"><%= title %></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <!-- <h3 class="card-title">Quick Example</h3> -->
+                        </div>
+                        <!-- form start -->
+                        <form enctype="multipart/form-data">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="title"
+                                        name="title"
+                                        placeholder="Enter Title"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label for="summernote">Content</label>
+                                    <textarea id="summernote"> </textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="image">File Upload</label>
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="image"
+                                        name="image"
+                                        multiple
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label for="category">Category</label>
+                                    <select
+                                        class="form-control"
+                                        id="category"
+                                        name="category"
+                                    >
+                                        <option value="">
+                                            Select Category
+                                        </option>
+                                        <%
+                                        categories.forEach(function(category){
+                                        %>
+                                        <option value="<%= category.id %>">
+                                            <%= category.name %>
+                                        </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- /.card-body -->
+
+                            <div class="card-footer">
+                                <button
+                                    id="submitPost"
+                                    type="submit"
+                                    class="btn btn-primary col-12"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/plugins/jquery/jquery.min.js"></script>
+<script>
+    $("#submitPost").click(function (e) {
+        e.preventDefault();
+
+        var formData = new FormData();
+        formData.append("title", $("#title").val());
+        formData.append("content", $("#summernote").val());
+        //multiple file upload
+        var files = $("#image")[0].files;
+        for (var i = 0; i < files.length; i++) {
+            formData.append("image", files[i]);
+        }
+        formData.append("category", $("#category").val());
+
+        $.ajax({
+            url: "/post",
+            type: "POST",
+            data: formData,
+            contentType: false, // Important: Don't set content type
+            processData: false, // Important: Don't process the data
+            success: function (data) {
+                if (data.status === "success") {
+                    //empty the form field after success submit
+                    $("#title").val("");
+                    $("#summernote").val("");
+                    $("#image").val("");
+                    $("#category").val("");
+
+                    Toastify({
+                        text: data.message,
+                        duration: 1000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: "green",
+                        stopOnFocus: true,
+                        callback: function () {
+                            location.assign("/postview");
+                        },
+                    }).showToast();
+                }
+            },
+            error: function (error) {
+                Toastify({
+                    text: error.responseJSON.message,
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "red",
+                    stopOnFocus: true,
+                }).showToast();
+            },
+        });
+    });
+</script>

@@ -1,52 +1,84 @@
 const validator = require("fastest-validator");
-const models = require("../models");
+const models = require("../../models");
+
+//******************** view all post   *********************//
+
+const viewAllPost = async (req, res) => {
+    //get all posts from database descending with category and user
+    const posts = await models.Post.findAll({
+        order: [["id", "DESC"]],
+        include: [
+            {
+                model: models.Category,
+                as: "category",
+                attributes: ["id", "name"],
+            },
+            {
+                model: models.User,
+                as: "user",
+                attributes: ["id", "name"],
+            },
+        ],
+    });
+    res.render("pages/posts/post", {
+        title: "View All Post",
+        posts: posts,
+    });
+};
+
+const addViewForm = async (req, res) => {
+    //get all categories from database descending
+    const categories = await models.Category.findAll({
+        order: [["id", "DESC"]],
+    });
+    res.render("pages/posts/addpost", {
+        title: "Add Post",
+        categories: categories,
+    });
+};
+
 function save(req, res) {
+    const imageUrls = req.files.map((file) => file.path.replace("public", ""));
     const post = {
         title: req.body.title,
         content: req.body.content,
-        imageUrl: req.body.imageUrl,
-        categoryId: req.body.categoryId,
-        userId: req.userData.userId,
+        imageUrl: imageUrls.join(","), // convert array to string
+        categoryId: +req.body.category,
+        userId: res.locals.user.id,
     };
 
-    //******************** validation   *********************//
-    const schema = {
-        title: { type: "string", optional: false, max: "100" },
-        content: { type: "string", optional: false, max: "500" },
-        imageUrl: { type: "string", optional: true, max: "255" },
-        categoryId: { type: "number", optional: false },
-    };
-    const v = new validator();
-    const validationResponse = v.validate(post, schema);
-    if (validationResponse !== true) {
+    if (
+        post.title == "" ||
+        post.content == "" ||
+        post.categoryId == "" ||
+        post.imageUrl === null
+    ) {
         return res.status(400).json({
-            message: "Validation failed",
-            errors: validationResponse,
+            message: "Please fill all fields",
+            status: "error",
         });
     }
-    //******************** end validation   *********************//
-    models.Category.findByPk(req.body.categoryId).then((result) => {
-        if (!result) {
-            return res.status(404).json({
-                status: "error",
-                message: "Category not found",
+
+    models.Post.create({
+        title: post.title,
+        content: post.content,
+        imageUrl: post.imageUrl,
+        categoryId: post.categoryId,
+        userId: post.userId,
+    })
+        .then((result) => {
+            res.status(201).json({
+                message: "Post created successfully",
+                post: result,
+                status: "success",
             });
-        } else {
-            models.Post.create(post)
-                .then((result) => {
-                    res.status(201).json({
-                        message: "Post created successfully",
-                        post: result,
-                    });
-                })
-                .catch((error) => {
-                    res.status(500).json({
-                        message: "Something went wrong",
-                        error: error,
-                    });
-                });
-        }
-    });
+        })
+        .catch((error) => {
+            res.status(500).json({
+                message: "Something went wrong",
+                error: error,
+            });
+        });
 }
 
 function getAll(req, res) {
@@ -160,4 +192,7 @@ module.exports = {
     getOne: getOne,
     update: update,
     remove: remove,
+
+    viewAllPost: viewAllPost,
+    addViewForm: addViewForm,
 };

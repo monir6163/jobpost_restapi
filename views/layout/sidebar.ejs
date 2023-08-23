@@ -48,10 +48,10 @@
                     </a>
                 </li>
                 <li
-                    class="nav-item <%= title === 'Category' || title === 'Add Category' ? 'menu-is-opening menu-open' : '' %>"
+                    class="nav-item <%= title === 'Category' ? 'menu-is-opening menu-open' : '' %>"
                 >
                     <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-chart-pie"></i>
+                        <i class="nav-icon fas fa-plane"></i>
                         <p>
                             Job Categories
                             <i class="right fas fa-angle-left"></i>
@@ -67,44 +67,35 @@
                                 <p>All Category</p>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a
-                                href="/addCategory"
-                                class="nav-link <%= title === 'Add Category' ? 'active' : '' %>"
-                            >
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Add Category</p>
-                            </a>
-                        </li>
                     </ul>
                 </li>
                 <li
-                    class="nav-item <%= title === 'Subcategory' || title === 'Add Subcategory' ? 'menu-is-opening menu-open' : '' %>"
+                    class="nav-item <%= title === 'View All Post' || title === 'Add Post' ? 'menu-is-opening menu-open' : '' %>"
                 >
                     <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-chart-pie"></i>
+                        <i class="nav-icon fas fa-plus-square"></i>
                         <p>
-                            Job SubCategories
+                            Posts Job
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a
-                                href="/subCategory"
-                                class="nav-link <%= title === 'Subcategory' ? 'active' : '' %>"
+                                href="/postview"
+                                class="nav-link <%= title === 'View All Post' ? 'active' : '' %>"
                             >
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>All SubCategory</p>
+                                <p>All Posts</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a
-                                href="/addSubCategory"
-                                class="nav-link <%= title === 'Add Subcategory' ? 'active' : '' %>"
+                                href="/addpost"
+                                class="nav-link <%= title === 'Add Post' ? 'active' : '' %>"
                             >
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Add SubCategory</p>
+                                <p>Add Post</p>
                             </a>
                         </li>
                     </ul>

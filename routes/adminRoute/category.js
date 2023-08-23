@@ -8,16 +8,32 @@ router.get(
     checkAuthMiddleware.checkAuth,
     CategoryController.CategoryView
 );
-router.get(
-    "/addCategory",
-    checkAuthMiddleware.checkAuth,
-    CategoryController.addCategoryView
-);
 
 router.post(
     "/createCategory",
     checkAuthMiddleware.checkAuth,
     CategoryController.addCategory
 );
+
+router.get(
+    "/category/edit/:id",
+    checkAuthMiddleware.checkAuth,
+    CategoryController.editCategory
+);
+
+router.put(
+    "/category/update/:id",
+    checkAuthMiddleware.checkAuth,
+    CategoryController.updateCategory
+);
+
+router.delete(
+    "/category/delete/:id",
+    checkAuthMiddleware.checkAuth,
+    CategoryController.deleteCategory
+);
+
+//data table and mobile api
+router.get("/category/getAllCategories", CategoryController.getAllCategories);
 
 module.exports = router;
