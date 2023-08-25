@@ -36,4 +36,32 @@
     <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
     <!-- fab icon -->
     <link rel="icon" href="/dist/img/AdminLTELogo.png" />
+    <style>
+        .image-preview {
+            position: relative;
+            display: inline-flex;
+            margin: 0 10px 10px 0;
+        }
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+        .remove-icon {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            font-size: 62px;
+            background-color: black;
+            color: red;
+            cursor: pointer;
+            border-radius: 50%;
+            height: 50px;
+            width: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
 </head>

@@ -1,0 +1,250 @@
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1><%= title %></h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item">
+                            <a href="/postview">All Post</a>
+                        </li>
+                        <li class="breadcrumb-item active"><%= title %></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <!-- /.container-fluid -->
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <!-- <h3 class="card-title">Quick Example</h3> -->
+                        </div>
+                        <!-- form start -->
+                        <form enctype="multipart/form-data" id="editForm">
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="title">Title</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="title"
+                                        name="title"
+                                        value="<%= post.title %>"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label for="tags">Tags</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="tags"
+                                        name="tags"
+                                        value="<%= post.tags %>"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="address"
+                                        name="address"
+                                        value="<%= post.address %>"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label for="enddate">Apply End Date</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="enddate"
+                                        name="enddate"
+                                        value="<%= post.endDate %>"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label for="summernote">Content</label>
+                                    <textarea id="summernote">
+ 
+                                        <%= post.content %>
+                                    </textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="image">File Upload</label>
+                                    <input
+                                        type="file"
+                                        class="form-control"
+                                        id="image"
+                                        name="image"
+                                        multiple
+                                        accept="image/*"
+                                        value="<%= post.imageUrl %>"
+                                    />
+                                </div>
+                                <label for="image"> Preview Image:</label>
+
+                                <div class="form-group">
+                                    <div
+                                        class="image-preview"
+                                        id="image-preview-container"
+                                    >
+                                        <% if (post.imageUrl) { %> <% const
+                                        imageUrls = post.imageUrl.split(","); %>
+                                        <% imageUrls.forEach(function(imageUrl)
+                                        { %>
+                                        <img
+                                            src="http://localhost:3000/<%= imageUrl %>"
+                                            alt="Image"
+                                            width="50"
+                                        />
+                                        <% }); %> <% } else { %> No Images <% }
+                                        %>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="category">Category</label>
+                                    <select
+                                        class="form-control"
+                                        id="category"
+                                        name="category"
+                                    >
+                                        <option value="">
+                                            Select Category
+                                        </option>
+                                        <% categories.forEach(function(category)
+                                        { %>
+                                        <option value="<%= category.id %>"  
+                                            <%= category.id === post.categoryId ? 'selected' : '' %>
+                                            >
+                                            <%= category.name %>
+                                        </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- /.card-body -->
+
+                            <div class="card-footer">
+                                <button
+                                    id="submitPost"
+                                    type="submit"
+                                    class="btn btn-primary col-12"
+                                >
+                                    Update Post
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/plugins/jquery/jquery.min.js"></script>
+<script>
+    const imageInput = document.getElementById("image");
+    const previewContainer = document.getElementById("image-preview-container");
+
+    imageInput.addEventListener("change", function () {
+        previewContainer.innerHTML = "";
+
+        for (const file of imageInput.files) {
+            const previewItem = document.createElement("div");
+            previewItem.classList.add("image-preview");
+
+            const image = document.createElement("img");
+            image.src = URL.createObjectURL(file);
+
+            const removeIcon = document.createElement("span");
+            removeIcon.classList.add("remove-icon");
+            removeIcon.innerHTML = "&times;";
+
+            removeIcon.addEventListener("click", function () {
+                previewContainer.removeChild(previewItem);
+                const fileIndex = Array.from(previewContainer.children).indexOf(
+                    previewItem
+                );
+                if (fileIndex !== -1) {
+                    imageInput.files.splice(fileIndex, 1);
+                }
+                if (previewContainer.children.length === 0) {
+                    imageInput.value = ""; // Reset input field
+                }
+            });
+
+            previewItem.appendChild(image);
+            previewItem.appendChild(removeIcon);
+            previewContainer.appendChild(previewItem);
+        }
+    });
+
+    $(document).ready(function () {
+        $("#editForm").submit(function (event) {
+            event.preventDefault(); // Prevent the default form submission
+            let id = "<%= post.id %>"
+
+            const data = new FormData();
+            const title = $("#title").val();
+            const tags = $("#tags").val();
+            const address = $("#address").val();
+            const endDate = $("#enddate").val();
+            const content = $("#summernote").val();
+            const category = $("#category").val();
+            var files = $("#image")[0].files // Get the files from input field
+
+        for (var i = 0; i < files.length; i++) {
+            data.append("image", files[i]);
+        }
+           
+            data.append("title", title);
+            data.append("tags", tags);
+            data.append("address", address);
+            data.append("endDate", endDate);
+            data.append("content", content);
+            data.append("category", category);
+
+            
+
+            $.ajax({
+                url: `/post/update/${id}`,
+                type: "PUT",
+                data: data,
+                processData: false, // Prevent jQuery from processing data
+                contentType: false, // Prevent jQuery from setting content type
+                success: function (response) {
+                    if (response.status === "success") {
+                        Toastify({
+                            text: response.message,
+                            duration: 1000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "green",
+                            stopOnFocus: true,
+                            callback: function () {
+                                location.assign("/postview");
+                            },
+                        }).showToast();
+                    }
+                },
+                error: function (error) {
+                    Toastify({
+                        text: error.responseJSON.message,
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: "red",
+                        stopOnFocus: true,
+                    }).showToast();
+                },
+            });
+        });
+    });
+
+</script>

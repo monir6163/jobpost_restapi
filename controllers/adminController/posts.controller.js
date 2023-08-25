@@ -1,5 +1,7 @@
 const validator = require("fastest-validator");
 const models = require("../../models");
+const fs = require("fs");
+const path = require("path");
 
 //******************** view all post   *********************//
 
@@ -37,10 +39,26 @@ const addViewForm = async (req, res) => {
     });
 };
 
+const posteditview = async (req, res) => {
+    const id = req.params.id;
+    const post = await models.Post.findByPk(id);
+    const categories = await models.Category.findAll({
+        order: [["id", "DESC"]],
+    });
+    res.render("pages/posts/editpost", {
+        title: "Edit Post",
+        post: post,
+        categories: categories,
+    });
+};
+
 function save(req, res) {
     const imageUrls = req.files.map((file) => file.path.replace("public", ""));
     const post = {
         title: req.body.title,
+        tags: req.body.tags,
+        address: req.body.address,
+        endDate: req.body.endDate,
         content: req.body.content,
         imageUrl: imageUrls.join(","), // convert array to string
         categoryId: +req.body.category,
@@ -49,6 +67,9 @@ function save(req, res) {
 
     if (
         post.title == "" ||
+        post.tags == "" ||
+        post.address == "" ||
+        post.endDate == "" ||
         post.content == "" ||
         post.categoryId == "" ||
         post.imageUrl === null
@@ -61,6 +82,9 @@ function save(req, res) {
 
     models.Post.create({
         title: post.title,
+        tags: post.tags,
+        address: post.address,
+        endDate: post.endDate,
         content: post.content,
         imageUrl: post.imageUrl,
         categoryId: post.categoryId,
@@ -97,13 +121,97 @@ function getAll(req, res) {
         });
 }
 
-function getOne(req, res) {
+async function getOne(req, res) {
     const id = req.params.id;
-    models.Post.findByPk(id)
+    //get post by id from database with category and user table data
+    const post = await models.Post.findOne({
+        where: { id: id },
+        include: [
+            {
+                model: models.Category,
+                as: "category",
+                attributes: ["id", "name"],
+            },
+            {
+                model: models.User,
+                as: "user",
+                attributes: ["id", "name"],
+            },
+        ],
+    });
+    if (!post) {
+        return res.status(404).json({
+            message: "Post not found",
+            status: "error",
+        });
+    }
+    post.ViewCount += 1;
+    await post.update(
+        { ViewCount: post.ViewCount },
+        { fields: ["ViewCount"], silent: true }
+    );
+    res.status(200).json({
+        status: "success",
+        post: post,
+    });
+}
+
+async function update(req, res) {
+    const imageUrls = req.files.map((file) => file.path.replace("public", ""));
+    const id = req.params.id;
+    const userId = res.locals.user.id;
+    const updatedPost = {
+        title: req.body.title,
+        tags: req.body.tags,
+        address: req.body.address,
+        endDate: req.body.endDate,
+        content: req.body.content,
+        imageUrl: imageUrls.join(","), // convert array to string
+        categoryId: req.body.category,
+    };
+    //get image url from database
+    const post = await models.Post.findOne({
+        where: { id: id, userId: userId },
+    });
+
+    if (!post) {
+        return res.status(404).json({
+            message: "Post not found",
+            status: "error",
+        });
+    }
+
+    if (updatedPost.imageUrl == "") {
+        updatedPost.imageUrl = post.imageUrl;
+    }
+    // Delete post images from the folder
+    const imageUrlsFromDb = post.imageUrl.split(",");
+    imageUrlsFromDb.forEach((imageUrl) => {
+        // Delete the image from the folder if it exists in the uploads folder and is not the default image
+
+        let imagePath = path.join(__dirname, "../../public", imageUrl);
+        imagePath.replace("public", "");
+        if (fs.existsSync(imagePath)) {
+            //updatepost.imageurl != post.imageurl tahole delete korbe
+            if (updatedPost.imageUrl != post.imageUrl) {
+                fs.unlinkSync(imagePath);
+            }
+        } else {
+            res.status(404).json({
+                message: "File does not exist",
+                status: "error",
+            });
+        }
+    });
+
+    models.Post.update(updatedPost, {
+        where: { id: id, userId: userId },
+    })
         .then((result) => {
             res.status(200).json({
                 status: "success",
-                post: result,
+                message: "Post updated successfully",
+                post: updatedPost,
             });
         })
         .catch((error) => {
@@ -114,48 +222,39 @@ function getOne(req, res) {
         });
 }
 
-function update(req, res) {
+function remove(req, res) {
     const id = req.params.id;
-    const updatedPost = {
-        title: req.body.title,
-        content: req.body.content,
-        imageUrl: req.body.imageUrl,
-        categoryId: req.body.categoryId,
-    };
-    const userId = req.userData.userId;
+    const userId = res.locals.user.id;
+    // Retrieve the post before deleting to get image URLs
+    models.Post.findOne({ where: { id: id, userId: userId } })
+        .then((post) => {
+            if (!post) {
+                return res.status(404).json({
+                    message: "Post not found",
+                });
+            }
 
-    //******************** validation   *********************//
-    const schema = {
-        title: { type: "string", optional: false, max: "100" },
-        content: { type: "string", optional: false, max: "500" },
-        imageUrl: { type: "string", optional: true, max: "255" },
-        categoryId: { type: "number", optional: false },
-    };
-    const v = new validator();
-    const validationResponse = v.validate(updatedPost, schema);
-    if (validationResponse !== true) {
-        return res.status(400).json({
-            message: "Validation failed",
-            errors: validationResponse,
-        });
-    }
-    //******************** end validation   *********************//
-
-    models.Category.findByPk(req.body.categoryId).then((result) => {
-        if (!result) {
-            return res.status(404).json({
-                status: "error",
-                message: "Category not found",
+            // Delete post images from the folder
+            const imageUrls = post.imageUrl.split(",");
+            imageUrls.forEach((imageUrl) => {
+                let imagePath = path.join(__dirname, "../../public", imageUrl);
+                imagePath.replace("public", "");
+                // Delete the image from the folder if it exists in the uploads folder and is not the default image
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                } else {
+                    res.status(404).json({
+                        message: "File does not exist",
+                        status: "error",
+                    });
+                }
             });
-        } else {
-            models.Post.update(updatedPost, {
-                where: { id: id, userId: userId },
-            })
+            // Now delete the post from the database
+            models.Post.destroy({ where: { id: id, userId: userId } })
                 .then((result) => {
                     res.status(200).json({
                         status: "success",
-                        result: result,
-                        message: "Post updated successfully",
+                        message: "Post and images deleted successfully",
                     });
                 })
                 .catch((error) => {
@@ -164,19 +263,6 @@ function update(req, res) {
                         error: error,
                     });
                 });
-        }
-    });
-}
-
-function remove(req, res) {
-    const id = req.params.id;
-    const userId = req.userData.userId;
-    models.Post.destroy({ where: { id: id, userId: userId } })
-        .then((result) => {
-            res.status(200).json({
-                status: "success",
-                message: "Post deleted successfully",
-            });
         })
         .catch((error) => {
             res.status(500).json({
@@ -195,4 +281,5 @@ module.exports = {
 
     viewAllPost: viewAllPost,
     addViewForm: addViewForm,
+    posteditview: posteditview,
 };

@@ -4,6 +4,7 @@ const postsController = require("../../controllers/adminController/posts.control
 const checkAuthMiddleware = require("../../middleware/checkAuth");
 const multer = require("multer");
 const path = require("path");
+const { ro } = require("date-fns/locale");
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -52,6 +53,13 @@ router.get(
     checkAuthMiddleware.checkAuth,
     postsController.addViewForm
 );
+
+router.get(
+    "/editpost/:id",
+    checkAuthMiddleware.checkAuth,
+    postsController.posteditview
+);
+
 router.post(
     "/post",
     upload.array("image", 5),
@@ -59,7 +67,20 @@ router.post(
     postsController.save
 );
 router.get("/", checkAuthMiddleware.checkAuth, postsController.getAll);
-router.get("/:id", checkAuthMiddleware.checkAuth, postsController.getOne);
-router.put("/:id", checkAuthMiddleware.checkAuth, postsController.update);
-router.delete("/:id", checkAuthMiddleware.checkAuth, postsController.remove);
+router.get(
+    "/postdetails/:id",
+    // checkAuthMiddleware.checkAuth,
+    postsController.getOne
+);
+router.put(
+    "/post/update/:id",
+    upload.array("image", 5),
+    checkAuthMiddleware.checkAuth,
+    postsController.update
+);
+router.delete(
+    "/post/delete/:id",
+    checkAuthMiddleware.checkAuth,
+    postsController.remove
+);
 module.exports = router;

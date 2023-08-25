@@ -72,14 +72,15 @@
                             </td>
                             <td>
                                 <a
-                                    href="/post/edit/<%- post.id %>"
+                                    href="/editpost/<%- post.id %>"
                                     class="btn btn-primary btn-sm"
                                 >
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <a
-                                    href="/post/delete/<%- post.id %>"
-                                    class="btn btn-danger btn-sm"
+                                    href=""
+                                    class="btn btn-danger btn-sm delete-post"
+                                    data-post-id="<%- post.id %>"
                                 >
                                     <i class="fas fa-trash"></i>
                                 </a>
@@ -95,3 +96,49 @@
     </section>
     <!-- /.content -->
 </div>
+
+<script src="/plugins/jquery/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Attach a click event to a parent element that exists when the page loads
+        $(document).on("click", ".delete-post", function (event) {
+            event.preventDefault(); // Prevent default link behavior
+
+            var postId = $(this).data("post-id");
+            const confirmDelete = confirm("Are you sure you want to delete?");
+            if (!confirmDelete) {
+                return;
+            }
+            // Make the AJAX request to delete the post
+            $.ajax({
+                url: "/post/delete/" + postId,
+                type: "DELETE",
+                success: function (response) {
+                    if (response.status === "success") {
+                        Toastify({
+                            text: response.message,
+                            duration: 1000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "green",
+                            stopOnFocus: true,
+                            callback: function () {
+                                location.assign("/postview");
+                            },
+                        }).showToast();
+                    }
+                },
+                error: function (error) {
+                    Toastify({
+                        text: error.responseJSON.message,
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        backgroundColor: "red",
+                        stopOnFocus: true,
+                    }).showToast();
+                },
+            });
+        });
+    });
+</script>

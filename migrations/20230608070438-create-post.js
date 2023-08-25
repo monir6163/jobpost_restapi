@@ -12,6 +12,22 @@ module.exports = {
             title: {
                 type: Sequelize.STRING,
             },
+            tags: {
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
+            address: {
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
+            endDate: {
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
+            ViewCount: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+            },
             content: {
                 type: Sequelize.TEXT,
             },
