@@ -1,22 +1,27 @@
 const models = require("../../models");
+const fs = require("fs");
+const path = require("path");
 const CategoryView = async (req, res) => {
     // get all categories from database descending order
-    const categories = await models.Category.findAll({
-        order: [["id", "DESC"]],
-    });
+    const categories = await models.Category.findAll({});
     res.render("pages/category/category", { title: "Category", categories });
 };
 
 //api for get all categories from database descending order for admin panel and mobile app
 const getAllCategories = async (req, res) => {
     try {
-        const categories = await models.Category.findAll({
-            order: [["id", "DESC"]],
-        });
+        const categories = await models.Category.findAll({});
         if (categories) {
+            const allcat = categories.map((cat) => {
+                return {
+                    id: cat.id,
+                    name: cat.name,
+                    image: process.env.APP_URL + "/" + cat.image,
+                };
+            });
             return res.status(200).json({
                 status: "success",
-                categories: categories,
+                categories: allcat,
             });
         } else {
             return res.status(404).json({
@@ -34,13 +39,14 @@ const getAllCategories = async (req, res) => {
 
 //create a new category
 const addCategory = async (req, res) => {
+    const imageUrl = req.file?.path.replace(/\\/g, "/").split("public/")[1];
     try {
         const { catName } = req.body;
         //only string allowed for category name
         const regexString = /^[a-zA-Z]+$/;
         const banglaTextRegex = /^[ঀ-৾\s]+$/u;
 
-        if (!catName) {
+        if (!catName || !imageUrl) {
             return res.status(400).json({
                 status: "error",
                 errors: {
@@ -89,6 +95,7 @@ const addCategory = async (req, res) => {
         // create new category
         const category = await models.Category.create({
             name: catName,
+            image: imageUrl,
         });
         if (category) {
             return res.status(201).json({
@@ -139,6 +146,10 @@ const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { catName } = req.body;
+        let imageUrl;
+        if (req?.file) {
+            imageUrl = req.file.path.replace(/\\/g, "/").split("public/")[1];
+        }
         //only string allowed for category name
         const regexString = /^[a-zA-Z]+$/;
         const banglaTextRegex = /^[ঀ-৾\s]+$/u;
@@ -175,12 +186,35 @@ const updateCategory = async (req, res) => {
                 },
             });
         }
+        // delete old image from public folder
+        const cat = await models.Category.findOne({
+            where: {
+                id: id,
+            },
+        });
+        if (imageUrl === undefined) {
+            imageUrl = cat?.image;
+        }
+        let existedImagePath = path.join(__dirname, "../../public", cat?.image);
+        existedImagePath = existedImagePath.replace(/\\/g, "/");
+        if (fs.existsSync(existedImagePath)) {
+            //imageurl != cat?.image tahole delete korbe
+            if (imageUrl != cat?.image) {
+                fs.unlinkSync(existedImagePath);
+            }
+        } else {
+            res.status(404).json({
+                message: "File does not exist",
+                status: "error",
+            });
+        }
         // check if category already exists
         const categoryExists = await models.Category.findOne({
             where: {
                 name: catName,
             },
         });
+
         if (categoryExists) {
             return res.status(400).json({
                 status: "error",
@@ -193,6 +227,7 @@ const updateCategory = async (req, res) => {
         const category = await models.Category.update(
             {
                 name: catName,
+                image: imageUrl,
             },
             {
                 where: {
@@ -200,6 +235,7 @@ const updateCategory = async (req, res) => {
                 },
             }
         );
+
         if (category) {
             return res.status(200).json({
                 status: "success",
@@ -213,6 +249,7 @@ const updateCategory = async (req, res) => {
             });
         }
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             message: "An error occurred.",
             status: "error",
@@ -224,6 +261,25 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     try {
         const { id } = req.params;
+        const cat = await models.Category.findOne({
+            where: {
+                id: id,
+            },
+        });
+        const existedImagePath = path.join(
+            __dirname,
+            "../../public",
+            cat?.image
+        );
+        if (fs.existsSync(existedImagePath)) {
+            fs.unlinkSync(existedImagePath);
+        } else {
+            res.status(404).json({
+                message: "File does not exist",
+                status: "error",
+            });
+        }
+        // delete category from database
         const category = await models.Category.destroy({
             where: {
                 id: id,
@@ -241,6 +297,7 @@ const deleteCategory = async (req, res) => {
             });
         }
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             message: "An error occurred.",
             status: "error",

@@ -39,6 +39,7 @@
                         <tr>
                             <th>SN</th>
                             <th>Name</th>
+                            <th>CatImage</th>
                             <th>CreatedAt</th>
                             <th>UpdatedAt</th>
                             <th>Actions</th>
@@ -49,6 +50,15 @@
                         <tr>
                             <td><%= index + 1 %></td>
                             <td><%= category.name %></td>
+                            <td>
+                                <img
+                                    src="<%= `${APP_URL}/${category.image}` %>"
+                                    alt="<%= category.name %>"
+                                    width="50px"
+                                    height="50px"
+                                />
+                            </td>
+
                             <td>
                                 <% if(formatDistance && subDays) { %> <%=
                                 formatDistance(subDays(new Date(), 0), new
@@ -114,7 +124,7 @@
             <div class="modal-body">
                 <!-- Your form fields for adding a category can go here -->
                 <!-- For example: -->
-                <form id="addCategoryForm">
+                <form id="addCategoryForm" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="categoryName"
                             >Category Name
@@ -129,7 +139,19 @@
                             placeholder="Enter Category Name"
                         />
                     </div>
-                    <!-- Add more form fields as needed -->
+                    <div class="form-group">
+                        <label for="catimag">
+                            Category Image
+                            <span class="text-red">*</span>
+                        </label>
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="catimag"
+                            name="catimag"
+                            required
+                        />
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -178,7 +200,7 @@
             <div class="modal-body">
                 <!-- Your form fields for adding a category can go here -->
                 <!-- For example: -->
-                <form id="editCategoryForm">
+                <form id="editCategoryForm" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="categoryName"
                             >Category Name
@@ -190,10 +212,21 @@
                             id="categoryName"
                             name="catName"
                             required
-                            placeholder="Enter Category Name"
                         />
                     </div>
-                    <!-- Add more form fields as needed -->
+                    <div class="form-group">
+                        <label for="catimag">
+                            Category Image
+                            <span class="text-red">*</span>
+                        </label>
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="catimag"
+                            name="catimag"
+                            required
+                        />
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -221,16 +254,22 @@
     //create category with ajax
     $(document).ready(function () {
         $("#saveCategoryButton").click(function () {
-            var catName = $("#categoryName").val();
+            var formData = new FormData();
+            formData.append("catName", $("#categoryName").val());
+            formData.append("catimag", $("#catimag")[0].files[0]);
+
             $.ajax({
                 url: "/createCategory",
                 method: "POST",
-                data: { catName: catName },
+                contentType: false,
+                processData: false,
+                data: formData,
                 success: function (response) {
-                    if (response.status === "success") {
+                    if (response?.status === "success") {
                         $("#categoryName").val("");
+                        $("#catimag").val("");
                         Toastify({
-                            text: response.message,
+                            text: response?.message,
                             duration: 1000,
                             gravity: "top",
                             position: "right",
@@ -240,9 +279,9 @@
                                 location.reload();
                             },
                         }).showToast();
-                    } else if (response.status === "error") {
+                    } else if (response?.status === "error") {
                         Toastify({
-                            text: response.errors.message,
+                            text: response?.errors?.message,
                             duration: 3000,
                             gravity: "top",
                             position: "right",
@@ -280,15 +319,25 @@
 
         // Update category details
         $("#updateCategoryButton").on("click", function () {
-            var formData = $("#editCategoryForm").serialize();
+            var formData = new FormData();
+            formData.append(
+                "catName",
+                $("#editCategoryForm #categoryName").val()
+            );
+            formData.append(
+                "catimag",
+                $("#editCategoryForm #catimag")[0].files[0]
+            );
             $.ajax({
                 url: `/category/update/${categoryId}`, // Endpoint to update category
                 type: "PUT", // Use the appropriate HTTP method
+                contentType: false,
+                processData: false,
                 data: formData,
                 success: function (response) {
-                    if (response.status === "success") {
+                    if (response?.status === "success") {
                         Toastify({
-                            text: response.message,
+                            text: response?.message,
                             duration: 1000,
                             gravity: "top",
                             position: "right",
@@ -298,9 +347,9 @@
                                 location.reload();
                             },
                         }).showToast();
-                    } else if (response.status === "error") {
+                    } else if (response?.status === "error") {
                         Toastify({
-                            text: response.errors.message,
+                            text: response?.errors?.message,
                             duration: 3000,
                             gravity: "top",
                             position: "right",

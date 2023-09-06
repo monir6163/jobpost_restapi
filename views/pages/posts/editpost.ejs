@@ -100,7 +100,7 @@
                                         <% imageUrls.forEach(function(imageUrl)
                                         { %>
                                         <img
-                                            src="http://localhost:3000/<%= imageUrl %>"
+                                            src="<%= `${APP_URL}/${imageUrl}` %>"
                                             alt="Image"
                                             width="50"
                                         />
@@ -139,6 +139,10 @@
                                 >
                                     Update Post
                                 </button>
+                                <!-- loader -->
+                                <div class="loader text-center" style="display: none">
+                                    <i class="fas fa-sync-alt fa-spin"></i>
+                                    </div>
                             </div>
                         </form>
                     </div>
@@ -149,6 +153,8 @@
 </div>
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script>
+    const loader = document.querySelector(".loader");
+    const submitBtn = document.querySelector("#submitPost");
     const imageInput = document.getElementById("image");
     const previewContainer = document.getElementById("image-preview-container");
 
@@ -188,6 +194,8 @@
     $(document).ready(function () {
         $("#editForm").submit(function (event) {
             event.preventDefault(); // Prevent the default form submission
+            loader.style.display = "block";
+            submitBtn.classList.add("d-none");
             let id = "<%= post.id %>"
 
             const data = new FormData();
@@ -231,6 +239,8 @@
                                 location.assign("/postview");
                             },
                         }).showToast();
+                        loader.style.display = "none";
+                        submitBtn.classList.remove("d-none");
                     }
                 },
                 error: function (error) {
@@ -242,6 +252,8 @@
                         backgroundColor: "red",
                         stopOnFocus: true,
                     }).showToast();
+                    loader.style.display = "none";
+                    submitBtn.classList.remove("d-none");
                 },
             });
         });

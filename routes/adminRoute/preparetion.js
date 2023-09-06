@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const postsController = require("../../controllers/adminController/posts.controller");
 const checkAuthMiddleware = require("../../middleware/checkAuth");
+const preparetionController = require("../../controllers/adminController/preparetion.controller");
 const multer = require("multer");
 const path = require("path");
+
+//multer
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -41,45 +43,48 @@ const upload = multer({
         }
     },
 });
+// ************ admin/preparetion ************
 
 router.get(
-    "/postview",
+    "/preparetion",
     checkAuthMiddleware.checkAuth,
-    postsController.viewAllPost
-);
-router.get(
-    "/addpost",
-    checkAuthMiddleware.checkAuth,
-    postsController.addViewForm
+    preparetionController.viewAllPreparetion
 );
 
 router.get(
-    "/editpost/:id",
+    "/addPreparetionform",
     checkAuthMiddleware.checkAuth,
-    postsController.posteditview
+    preparetionController.addPreparetionform
 );
 
 router.post(
-    "/post",
+    "/addPreparetion",
     upload.array("image", 5),
     checkAuthMiddleware.checkAuth,
-    postsController.save
+    preparetionController.addPreparetion
+);
+
+router.get(
+    "/preparetion/edit/:id",
+    checkAuthMiddleware.checkAuth,
+    preparetionController.preparetioneditview
 );
 
 router.put(
-    "/post/update/:id",
+    "/preparetion/update/:id",
     upload.array("image", 5),
     checkAuthMiddleware.checkAuth,
-    postsController.update
-);
-router.delete(
-    "/post/delete/:id",
-    checkAuthMiddleware.checkAuth,
-    postsController.remove
+    preparetionController.preparetionUpdate
 );
 
-//for api react native
-router.get("/allpost/:id", postsController.categoryWisePost);
-router.get("/postdetails/:id", postsController.getOne);
+router.delete(
+    "/preparetion/delete/:id",
+    checkAuthMiddleware.checkAuth,
+    preparetionController.deletePreparetion
+);
+
+// ************ react native api ************
+router.get("/getallPreparetion/:id", preparetionController.getAllPreparetion);
+router.get("/preparetionDetails/:id", preparetionController.getOnePreparetion);
 
 module.exports = router;

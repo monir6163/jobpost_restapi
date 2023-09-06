@@ -51,7 +51,7 @@
                     class="nav-item <%= title === 'Category' ? 'menu-is-opening menu-open' : '' %>"
                 >
                     <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-plane"></i>
+                        <i class="nav-icon fas fa-plus-square"></i>
                         <p>
                             Job Categories
                             <i class="right fas fa-angle-left"></i>
@@ -96,6 +96,68 @@
                             >
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Add Post</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li
+                    class="nav-item <%= title === 'View All Notice' || title === 'Add Notice' || title === 'Edit Notice' ? 'menu-is-opening menu-open' : '' %>"
+                >
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-plus-square"></i>
+                        <p>
+                            Notice Board
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a
+                                href="/notice"
+                                class="nav-link <%= title === 'View All Notice' ? 'active' : '' %>"
+                            >
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>All Notice</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                href="/notice/from"
+                                class="nav-link <%= title === 'Add Notice' ? 'active' : '' %>"
+                            >
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Add Notice</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li
+                    class="nav-item <%= title === 'View All Preparetion' || title === 'Add Preparetion' || title === 'Edit Preparetion' ? 'menu-is-opening menu-open' : '' %>"
+                >
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-plus-square"></i>
+                        <p>
+                            Job Preparation
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a
+                                href="/preparetion"
+                                class="nav-link <%= title === 'View All Preparetion' ? 'active' : '' %>"
+                            >
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>All Preparetion</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                href="/addPreparetionform"
+                                class="nav-link <%= title === 'Add Preparetion' ? 'active' : '' %>"
+                            >
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Add Preparation</p>
                             </a>
                         </li>
                     </ul>

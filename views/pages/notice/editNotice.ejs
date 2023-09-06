@@ -27,7 +27,7 @@
                             <!-- <h3 class="card-title">Quick Example</h3> -->
                         </div>
                         <!-- form start -->
-                        <form enctype="multipart/form-data">
+                        <form enctype="multipart/form-data" id="editForm">
                             <div class="card-body">
                                 <div class="form-group">
                                     <label for="title">Title</label>
@@ -36,42 +36,25 @@
                                         class="form-control"
                                         id="title"
                                         name="title"
-                                        placeholder="Enter Title"
+                                        value="<%=notice.title%>"
                                     />
                                 </div>
                                 <div class="form-group">
-                                    <label for="tags">Tags</label>
+                                    <label for="source"> Source </label>
                                     <input
                                         type="text"
                                         class="form-control"
-                                        id="tags"
-                                        name="tags"
-                                        placeholder="Enter Tags (comma separated)"
-                                    />
-                                </div>
-                                <div class="form-group">
-                                    <label for="address">Address</label>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id="address"
-                                        name="address"
-                                        placeholder="Enter Address"
-                                    />
-                                </div>
-                                <div class="form-group">
-                                    <label for="enddate">Apply End Date</label>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id="enddate"
-                                        name="enddate"
-                                        placeholder="Enter Apply End Date (DD-MM-YYYY)"
+                                        id="source"
+                                        name="source"
+                                        value="<%=notice.source%>"
                                     />
                                 </div>
                                 <div class="form-group">
                                     <label for="summernote">Content</label>
-                                    <textarea id="summernote"> </textarea>
+                                    <textarea id="summernote">
+ 
+                                        <%=notice.content%>
+                                    </textarea>
                                 </div>
                                 <div class="form-group">
                                     <label for="image">File Upload</label>
@@ -82,14 +65,28 @@
                                         name="image"
                                         multiple
                                         accept="image/*"
+                                        value="<%=notice.image%>"
                                     />
                                 </div>
                                 <label for="image"> Preview Image:</label>
+
                                 <div class="form-group">
                                     <div
                                         class="image-preview"
                                         id="image-preview-container"
-                                    ></div>
+                                    >
+                                        <% if (notice.image) { %> <% const
+                                        imageUrls = notice.image.split(","); %>
+                                        <% imageUrls.forEach(function(image) {
+                                        %>
+                                        <img
+                                            src="<%= `${APP_URL}/${image}` %>"
+                                            alt="Image"
+                                            width="50"
+                                        />
+                                        <% }); %> <% } else { %> No Images <% }
+                                        %>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="category">Category</label>
@@ -101,13 +98,18 @@
                                         <option value="">
                                             Select Category
                                         </option>
-                                        <%
-                                        categories.forEach(function(category){
-                                        %>
-                                        <option value="<%= category.id %>">
-                                            <%= category.name %>
+                                        <option value="1" <%= notice.catId === '1' ?
+                                            'selected' : '' %>>
+                                            নোটিশ
                                         </option>
-                                        <% }) %>
+                                        <option value="2" <%= notice.catId === '2' ?
+                                            'selected' : '' %>>
+                                             ফলাফল
+                                        </option>
+                                        <option value="3" <%= notice.catId === '3' ?
+                                            'selected' : '' %> >
+                                            প্রশ্ন ও উত্তর
+                                        </option>
                                     </select>
                                 </div>
                             </div>
@@ -119,12 +121,14 @@
                                     type="submit"
                                     class="btn btn-primary col-12"
                                 >
-                                    Submit
+                                    Update Notice
                                 </button>
+
                                 <!-- loader -->
                                 <div
-                                    class="loader text-center"
+                                    class="overlay dark text-center"
                                     style="display: none"
+                                    id="loader"
                                 >
                                     <i class="fas fa-sync-alt fa-spin"></i>
                                 </div>
@@ -138,8 +142,8 @@
 </div>
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script>
-    const loader = document.querySelector(".loader");
-    const submitBtn = document.querySelector("#submitPost");
+    const loader = document.getElementById("loader");
+    const submitPost = document.getElementById("submitPost");
     const imageInput = document.getElementById("image");
     const previewContainer = document.getElementById("image-preview-container");
 
@@ -175,67 +179,69 @@
             previewContainer.appendChild(previewItem);
         }
     });
-    $("#submitPost").click(function (e) {
-        e.preventDefault();
-        loader.style.display = "block";
-        submitBtn.classList.add("d-none");
-        var formData = new FormData();
-        formData.append("title", $("#title").val());
-        formData.append("tags", $("#tags").val());
-        formData.append("address", $("#address").val());
-        formData.append("endDate", $("#enddate").val());
-        formData.append("content", $("#summernote").val());
-        //multiple file upload
-        var files = $("#image")[0].files;
-        for (var i = 0; i < files.length; i++) {
-            formData.append("image", files[i]);
-        }
-        formData.append("category", $("#category").val());
+    $(document).ready(function () {
+        $("#editForm").submit(function (event) {
+            event.preventDefault(); // Prevent the default form submission
+            loader.style.display = "block";
+            submitPost.classList.add("d-none");
+            let id = "<%= notice.id %>"
 
-        $.ajax({
-            url: "/post",
-            type: "POST",
-            data: formData,
-            contentType: false, // Important: Don't set content type
-            processData: false, // Important: Don't process the data
-            success: function (data) {
-                if (data.status === "success") {
-                    //empty the form field after success submit
-                    $("#title").val("");
-                    $("#tags").val("");
-                    $("#address").val("");
-                    $("#enddate").val("");
-                    $("#summernote").val("");
-                    $("#image").val("");
-                    $("#category").val("");
+            const data = new FormData();
+            const title = $("#title").val();
+            const source = $("#source").val();
+            const content = $("#summernote").val();
+            const category = $("#category").val();
+            var image = $("#image")[0].files // Get the files from input field
 
+            if (image.length > 0) {
+                for (let i = 0; i < image.length; i++) {
+                    data.append("image", image[i]);
+                }
+            }
+           
+            data.append("title", title);
+            data.append("source", source);
+            data.append("content", content);
+            data.append("category", category);
+
+            
+
+            $.ajax({
+                url: `/notice/update/${id}`,
+                type: "PUT",
+                data: data,
+                processData: false, // Prevent jQuery from processing data
+                contentType: false, // Prevent jQuery from setting content type
+                success: function (response) {
+                    if (response.status === "success") {
+                        Toastify({
+                            text: response.message,
+                            duration: 1000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "green",
+                            stopOnFocus: true,
+                            callback: function () {
+                                location.assign("/notice");
+                            },
+                        }).showToast();
+                        loader.style.display = "none";
+                        submitPost.classList.remove("d-none");
+                    }
+                },
+                error: function (error) {
                     Toastify({
-                        text: data.message,
-                        duration: 1000,
+                        text: error.responseJSON.message,
+                        duration: 3000,
                         gravity: "top",
                         position: "right",
-                        backgroundColor: "green",
+                        backgroundColor: "red",
                         stopOnFocus: true,
-                        callback: function () {
-                            location.assign("/postview");
-                        },
                     }).showToast();
                     loader.style.display = "none";
-                    submitBtn.classList.remove("d-none");
-                }
-            },
-            error: function (error) {
-                Toastify({
-                    text: error.responseJSON.message,
-                    duration: 3000,
-                    gravity: "top",
-                    position: "right",
-                    backgroundColor: "red",
-                    stopOnFocus: true,
-                }).showToast();
-                loader.style.display = "none";
-                submitBtn.classList.remove("d-none");
-            },
+                    submitPost.classList.remove("d-none");
+                },
+            });
         });
     });
 </script>

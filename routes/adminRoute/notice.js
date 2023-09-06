@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const postsController = require("../../controllers/adminController/posts.controller");
 const checkAuthMiddleware = require("../../middleware/checkAuth");
+const noticeController = require("../../controllers/adminController/notice.controller");
 const multer = require("multer");
 const path = require("path");
+
+//multer
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -42,44 +44,47 @@ const upload = multer({
     },
 });
 
+// ************ admin/notice ************
+
 router.get(
-    "/postview",
+    "/notice",
     checkAuthMiddleware.checkAuth,
-    postsController.viewAllPost
-);
-router.get(
-    "/addpost",
-    checkAuthMiddleware.checkAuth,
-    postsController.addViewForm
+    noticeController.viewAllNotice
 );
 
 router.get(
-    "/editpost/:id",
+    "/notice/from",
     checkAuthMiddleware.checkAuth,
-    postsController.posteditview
+    noticeController.addViewForm
 );
-
 router.post(
-    "/post",
+    "/notice/create",
     upload.array("image", 5),
     checkAuthMiddleware.checkAuth,
-    postsController.save
+    noticeController.addNotice
+);
+
+router.get(
+    "/notice/edit/:id",
+    checkAuthMiddleware.checkAuth,
+    noticeController.noticeeditview
 );
 
 router.put(
-    "/post/update/:id",
+    "/notice/update/:id",
     upload.array("image", 5),
     checkAuthMiddleware.checkAuth,
-    postsController.update
-);
-router.delete(
-    "/post/delete/:id",
-    checkAuthMiddleware.checkAuth,
-    postsController.remove
+    noticeController.noticeUpdate
 );
 
-//for api react native
-router.get("/allpost/:id", postsController.categoryWisePost);
-router.get("/postdetails/:id", postsController.getOne);
+router.delete(
+    "/notice/delete/:id",
+    checkAuthMiddleware.checkAuth,
+    noticeController.deleteNotice
+);
+
+//react native api for notice get all notice category wise
+router.get("/getallNotice/:id", noticeController.getAllNotice);
+router.get("/noticeDetails/:id", noticeController.getOneNotice);
 
 module.exports = router;

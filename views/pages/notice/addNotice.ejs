@@ -40,33 +40,13 @@
                                     />
                                 </div>
                                 <div class="form-group">
-                                    <label for="tags">Tags</label>
+                                    <label for="source"> Source </label>
                                     <input
                                         type="text"
                                         class="form-control"
-                                        id="tags"
-                                        name="tags"
-                                        placeholder="Enter Tags (comma separated)"
-                                    />
-                                </div>
-                                <div class="form-group">
-                                    <label for="address">Address</label>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id="address"
-                                        name="address"
-                                        placeholder="Enter Address"
-                                    />
-                                </div>
-                                <div class="form-group">
-                                    <label for="enddate">Apply End Date</label>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id="enddate"
-                                        name="enddate"
-                                        placeholder="Enter Apply End Date (DD-MM-YYYY)"
+                                        id="source"
+                                        name="source"
+                                        placeholder="Enter Source"
                                     />
                                 </div>
                                 <div class="form-group">
@@ -101,13 +81,11 @@
                                         <option value="">
                                             Select Category
                                         </option>
-                                        <%
-                                        categories.forEach(function(category){
-                                        %>
-                                        <option value="<%= category.id %>">
-                                            <%= category.name %>
+                                        <option value="1">নোটিশ</option>
+                                        <option value="2">ফলাফল</option>
+                                        <option value="3">
+                                            প্রশ্ন ও উত্তর
                                         </option>
-                                        <% }) %>
                                     </select>
                                 </div>
                             </div>
@@ -121,10 +99,12 @@
                                 >
                                     Submit
                                 </button>
+
                                 <!-- loader -->
                                 <div
-                                    class="loader text-center"
+                                    class="overlay dark text-center"
                                     style="display: none"
+                                    id="loader"
                                 >
                                     <i class="fas fa-sync-alt fa-spin"></i>
                                 </div>
@@ -138,8 +118,8 @@
 </div>
 <script src="/plugins/jquery/jquery.min.js"></script>
 <script>
-    const loader = document.querySelector(".loader");
-    const submitBtn = document.querySelector("#submitPost");
+    const loader = document.getElementById("loader");
+    const submitPost = document.getElementById("submitPost");
     const imageInput = document.getElementById("image");
     const previewContainer = document.getElementById("image-preview-container");
 
@@ -178,55 +158,52 @@
     $("#submitPost").click(function (e) {
         e.preventDefault();
         loader.style.display = "block";
-        submitBtn.classList.add("d-none");
-        var formData = new FormData();
-        formData.append("title", $("#title").val());
-        formData.append("tags", $("#tags").val());
-        formData.append("address", $("#address").val());
-        formData.append("endDate", $("#enddate").val());
-        formData.append("content", $("#summernote").val());
+        submitPost.classList.add("d-none");
+        const title = $("#title").val();
+        const source = $("#source").val();
+        const content = $("#summernote").val();
+        const category = $("#category").val();
+        const image = $("#image").val();
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("source", source);
+        formData.append("content", content);
+        formData.append("category", category);
         //multiple file upload
         var files = $("#image")[0].files;
         for (var i = 0; i < files.length; i++) {
             formData.append("image", files[i]);
         }
-        formData.append("category", $("#category").val());
-
         $.ajax({
-            url: "/post",
+            url: "/notice/create",
             type: "POST",
             data: formData,
-            contentType: false, // Important: Don't set content type
-            processData: false, // Important: Don't process the data
+            processData: false,
+            contentType: false,
             success: function (data) {
-                if (data.status === "success") {
-                    //empty the form field after success submit
-                    $("#title").val("");
-                    $("#tags").val("");
-                    $("#address").val("");
-                    $("#enddate").val("");
-                    $("#summernote").val("");
-                    $("#image").val("");
-                    $("#category").val("");
+                //reset form
+                $("#title").val("");
+                $("#source").val("");
+                $("#summernote").val("");
+                $("#category").val("");
+                $("#image").val("");
+                previewContainer.innerHTML = "";
 
-                    Toastify({
-                        text: data.message,
-                        duration: 1000,
-                        gravity: "top",
-                        position: "right",
-                        backgroundColor: "green",
-                        stopOnFocus: true,
-                        callback: function () {
-                            location.assign("/postview");
-                        },
-                    }).showToast();
-                    loader.style.display = "none";
-                    submitBtn.classList.remove("d-none");
-                }
-            },
-            error: function (error) {
                 Toastify({
-                    text: error.responseJSON.message,
+                    text: data.message,
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "green",
+                    stopOnFocus: true,
+                }).showToast();
+                loader.style.display = "none";
+                submitPost.classList.remove("d-none");
+            },
+
+            error: function (err) {
+                Toastify({
+                    text: err.responseJSON.message,
                     duration: 3000,
                     gravity: "top",
                     position: "right",
@@ -234,7 +211,7 @@
                     stopOnFocus: true,
                 }).showToast();
                 loader.style.display = "none";
-                submitBtn.classList.remove("d-none");
+                submitPost.classList.remove("d-none");
             },
         });
     });

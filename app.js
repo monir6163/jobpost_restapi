@@ -1,6 +1,7 @@
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
 const dotenv = require("dotenv");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const path = require("path").join(__dirname, "public");
@@ -14,14 +15,14 @@ app.use(express.static(path));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 dotenv.config();
+app.use(cors());
 app.use(cookieParser());
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 // ************ format date ************
 app.locals.formatDistance = formatDistance;
 app.locals.subDays = subDays;
+app.locals.APP_URL = process.env.APP_URL;
+app.locals.APP_LOCAL_URL = process.env.APP_LOCAL_URL;
 
 // ************ refresh token ************
 app.post("/refreshToken", (req, res) => {
@@ -73,4 +74,14 @@ app.use(categoryRoutes);
 // ************ Post ************
 const postRoutes = require("./routes/adminRoute/post");
 app.use(postRoutes);
+
+// ************ Notice ************
+
+const noticeRoutes = require("./routes/adminRoute/notice");
+app.use(noticeRoutes);
+
+// ************ Preparetion ************
+const preparetionRoutes = require("./routes/adminRoute/preparetion");
+app.use(preparetionRoutes);
+
 module.exports = app;

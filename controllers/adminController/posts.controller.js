@@ -1,4 +1,3 @@
-const validator = require("fastest-validator");
 const models = require("../../models");
 const fs = require("fs");
 const path = require("path");
@@ -28,6 +27,65 @@ const viewAllPost = async (req, res) => {
     });
 };
 
+//category wise post get from database
+const categoryWisePost = async (req, res) => {
+    const id = req.params.id;
+    const posts = await models.Post.findAll({
+        where: { categoryId: id },
+        order: [["id", "DESC"]],
+        include: [
+            {
+                model: models.Category,
+                as: "category",
+                attributes: ["id", "name"],
+            },
+            {
+                model: models.User,
+                as: "user",
+                attributes: ["id", "name"],
+            },
+        ],
+    });
+    if (posts) {
+        allpost = posts.map((post) => {
+            //image url convert to array from string
+            let imageUrls = post.imageUrl.split(",");
+            return {
+                id: post.id,
+                title: post.title,
+                tags: post.tags,
+                address: post.address,
+                endDate: post.endDate,
+                content: post.content,
+                imageUrl: imageUrls?.map((imageUrl) => {
+                    return `${process.env.APP_URL + imageUrl}`;
+                }),
+                ViewCount: post.ViewCount,
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
+                category: {
+                    id: post.category.id,
+                    name: post.category.name,
+                },
+                user: {
+                    id: post.user.id,
+                    name: post.user.name,
+                },
+            };
+        });
+
+        return res.status(200).json({
+            status: "success",
+            posts: allpost,
+        });
+    } else {
+        return res.status(404).json({
+            status: "error",
+            message: "Post not found",
+        });
+    }
+};
+
 const addViewForm = async (req, res) => {
     //get all categories from database descending
     const categories = await models.Category.findAll({
@@ -53,7 +111,7 @@ const posteditview = async (req, res) => {
 };
 
 function save(req, res) {
-    const imageUrls = req.files.map((file) => file.path.replace("public", ""));
+    const imageUrls = req.files.map((file) => file?.path.replace("public", ""));
     const post = {
         title: req.body.title,
         tags: req.body.tags,
@@ -105,22 +163,6 @@ function save(req, res) {
         });
 }
 
-function getAll(req, res) {
-    models.Post.findAll()
-        .then((result) => {
-            res.status(200).json({
-                status: "success",
-                posts: result,
-            });
-        })
-        .catch((error) => {
-            res.status(500).json({
-                message: "Something went wrong",
-                error: error,
-            });
-        });
-}
-
 async function getOne(req, res) {
     const id = req.params.id;
     //get post by id from database with category and user table data
@@ -157,7 +199,7 @@ async function getOne(req, res) {
 }
 
 async function update(req, res) {
-    const imageUrls = req.files.map((file) => file.path.replace("public", ""));
+    const imageUrls = req.files.map((file) => file?.path.replace("public", ""));
     const id = req.params.id;
     const userId = res.locals.user.id;
     const updatedPost = {
@@ -274,7 +316,6 @@ function remove(req, res) {
 
 module.exports = {
     save: save,
-    getAll: getAll,
     getOne: getOne,
     update: update,
     remove: remove,
@@ -282,4 +323,5 @@ module.exports = {
     viewAllPost: viewAllPost,
     addViewForm: addViewForm,
     posteditview: posteditview,
+    categoryWisePost: categoryWisePost,
 };

@@ -23,8 +23,8 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <a href="/addpost" class="btn btn-primary float-right">
-                        <i class="fas fa-plus"></i> Add Post
+                    <a href="/notice/from" class="btn btn-primary float-right">
+                        <i class="fas fa-plus"></i> Add Notice
                     </a>
                 </h3>
             </div>
@@ -36,51 +36,56 @@
                             <th>Title</th>
                             <th>CatName</th>
                             <th>Image</th>
-                            <th>user</th>
+                            <th>Source</th>
                             <th>CreatedAt</th>
                             <th>UpdatedAt</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% posts.forEach(function(post, index) { %>
+                        <% notices.forEach(function(notice, index) { %>
                         <tr>
                             <td><%- index + 1 %></td>
-                            <td><%- post.title %></td>
-                            <td><%- post.category.name %></td>
+                            <td><%- notice.title %></td>
+                            <td>
+                                <% if (notice.catId === '1') { %> নোটিশ <% }
+                                else if (notice.catId === '2') { %> ফলাফল <% }
+                                else if (notice.catId === '3') { %> প্রশ্ন ও
+                                উত্তর <% } %>
+                            </td>
                             <td class="d-flex justify-content-around">
-                                <% if (post.imageUrl) { %> <% const imageUrls =
-                                post.imageUrl.split(","); %> <%
-                                imageUrls.forEach(function(imageUrl) { %>
+                                <% if (notice.image) { %> <% const imageUrls =
+                                notice.image.split(","); %> <%
+                                imageUrls.forEach(function(image) { %>
                                 <img
-                                    src="<%= `${APP_URL}/${imageUrl}` %>"
+                                    src="<%= `${APP_URL}/${image}` %>"
                                     alt="Image"
                                     width="50"
                                 />
                                 <% }); %> <% } else { %> No Images <% } %>
                             </td>
-                            <td><%- post.user.name %></td>
+                            <td><%- notice.source %></td>
                             <td>
                                 <!-- date fns formatdistance, subdays -->
-                                <%- formatDistance(post.createdAt, new Date(), {
-                                addSuffix: true }) %>
+                                <%- formatDistance(notice.createdAt, new Date(),
+                                { addSuffix: true }) %>
                             </td>
                             <td>
                                 <!-- date fns formatdistance, subdays -->
-                                <%- formatDistance(post.updatedAt, new Date(), {
-                                addSuffix: true }) %>
+                                <%- formatDistance(notice.updatedAt, new Date(),
+                                { addSuffix: true }) %>
                             </td>
                             <td>
                                 <a
-                                    href="/editpost/<%- post.id %>"
+                                    href="/notice/edit/<%- notice.id %>"
                                     class="btn btn-primary btn-sm"
                                 >
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <a
                                     href=""
-                                    class="btn btn-danger btn-sm delete-post"
-                                    data-post-id="<%- post.id %>"
+                                    class="btn btn-danger btn-sm delete-notice"
+                                    data-notice-id="<%- notice.id %>"
                                 >
                                     <i class="fas fa-trash"></i>
                                 </a>
@@ -101,17 +106,17 @@
 <script>
     $(document).ready(function () {
         // Attach a click event to a parent element that exists when the page loads
-        $(document).on("click", ".delete-post", function (event) {
+        $(document).on("click", ".delete-notice", function (event) {
             event.preventDefault(); // Prevent default link behavior
 
-            var postId = $(this).data("post-id");
+            var noticeId = $(this).data("notice-id");
             const confirmDelete = confirm("Are you sure you want to delete?");
             if (!confirmDelete) {
                 return;
             }
             // Make the AJAX request to delete the post
             $.ajax({
-                url: "/post/delete/" + postId,
+                url: "/notice/delete/" + noticeId,
                 type: "DELETE",
                 success: function (response) {
                     if (response.status === "success") {
@@ -123,7 +128,7 @@
                             backgroundColor: "green",
                             stopOnFocus: true,
                             callback: function () {
-                                location.assign("/postview");
+                                location.assign("/notice");
                             },
                         }).showToast();
                     }

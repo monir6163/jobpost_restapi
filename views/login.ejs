@@ -36,9 +36,16 @@
                 <div class="row">
                     <!-- /.col -->
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary btn-block">
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-block submit"
+                        >
                             Sign In
                         </button>
+                        <!-- loader -->
+                        <div class="loader text-center" style="display: none">
+                            <i class="fas fa-sync-alt fa-spin"></i>
+                        </div>
                     </div>
                     <!-- /.col -->
                 </div>
@@ -95,6 +102,8 @@
 <script>
     const form = document.querySelector("form");
     const errorText = document.querySelector(".login-box-msg");
+    const loader = document.querySelector(".loader");
+    const submitBtn = document.querySelector(".submit");
 
     async function login(email, password) {
         try {
@@ -107,7 +116,11 @@
             const data = await res.json();
             return data;
         } catch (error) {
-            console.log(error);
+            Toastify({
+                text: "Login failed. Please try again.",
+                backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                duration: 5000,
+            }).showToast();
         }
     }
 
@@ -126,12 +139,18 @@
             }
         } catch (error) {
             console.error("Error refreshing access token:", error);
-            // Handle the error, possibly by logging the user out
+            Toastify({
+                text: "Error refreshing access token",
+                backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                duration: 5000,
+            }).showToast();
         }
     }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        loader.style.display = "block";
+        submitBtn.classList.add("d-none");
         const email = form.email.value;
         const password = form.password.value;
 
@@ -140,14 +159,16 @@
         if (loginData.status === "success") {
             Toastify({
                 text: loginData.message,
-                duration: 5000,
+                duration: 1000,
                 style: {
                     background: "linear-gradient(to right, #00b09b, #96c93d)",
                 },
+                callback: function () {
+                    location.assign("/dashboard");
+                },
             }).showToast();
-            setTimeout(() => {
-                location.assign("/dashboard");
-            }, 1000);
+            loader.style.display = "none";
+            submitBtn.classList.remove("d-none");
         } else {
             if (loginData.message === "Access token expired") {
                 // Try refreshing the access token
@@ -163,10 +184,12 @@
                                 background:
                                     "linear-gradient(to right, #00b09b, #96c93d)",
                             },
+                            callback: function () {
+                                location.assign("/dashboard");
+                            },
                         }).showToast();
-                        setTimeout(() => {
-                            location.assign("/dashboard");
-                        }, 1000);
+                        loader.style.display = "none";
+                        submitBtn.classList.remove("d-none");
                     } else {
                         Toastify({
                             text: retryLoginData.message,
@@ -174,6 +197,8 @@
                                 "linear-gradient(to right, #ff416c, #ff4b2b)",
                             duration: 5000,
                         }).showToast();
+                        loader.style.display = "none";
+                        submitBtn.classList.remove("d-none");
                     }
                 } else {
                     Toastify({
@@ -182,6 +207,8 @@
                             "linear-gradient(to right, #ff416c, #ff4b2b)",
                         duration: 5000,
                     }).showToast();
+                    loader.style.display = "none";
+                    submitBtn.classList.remove("d-none");
                 }
             } else {
                 Toastify({
@@ -190,6 +217,9 @@
                         "linear-gradient(to right, #ff416c, #ff4b2b)",
                     duration: 5000,
                 }).showToast();
+
+                loader.style.display = "none";
+                submitBtn.classList.remove("d-none");
             }
         }
     });
